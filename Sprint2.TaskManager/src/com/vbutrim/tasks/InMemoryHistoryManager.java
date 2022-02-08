@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * @author butrim
@@ -14,95 +13,78 @@ import java.util.function.Function;
 public class InMemoryHistoryManager implements HistoryManager {
     private static final int RECENT_TASKS_COUNT = 10;
 
-    private final LinkedUniqList<TaskId, TaskId> taskIds;
     private final TaskRepository taskRepository;
+    private final LinkedUniqTaskList historyList;
 
     public InMemoryHistoryManager(TaskRepository taskRepository) {
-        this.taskIds = new LinkedUniqList<>(new Function<TaskId, TaskId>() {
-            @Override
-            public TaskId apply(TaskId taskId) {
-                return taskId;
-            }
-        });
-
         this.taskRepository = taskRepository;
-    }
-
-    public List<TaskId> getRecentTaskIds() {
-        return taskIds.asUnmodifiableList();
+        this.historyList = new LinkedUniqTaskList();
     }
 
     @Override
     public void add(TaskId taskId) {
-        taskIds.addFirst(taskId);
-        if (taskIds.size() == RECENT_TASKS_COUNT + 1) {
-            taskIds.removeLast();
+        historyList.addFirst(taskId);
+        if (historyList.size() > RECENT_TASKS_COUNT + 1) {
+            historyList.removeLast();
         }
     }
 
     @Override
     public void remove(TaskId taskId) {
-        taskIds.remove(taskId);
+        historyList.remove(taskId);
     }
 
     @Override
     public List<Task> getHistory() {
-        return getRecentTaskIds()
-                .stream()
-                .map(taskRepository::getTaskByIdOrThrow)
-                .toList();
+        List<TaskId> recentlyTaskIds = historyList.asList();
+        List<Task> recentTasks = new ArrayList<>(recentlyTaskIds.size());
+        for (TaskId taskId : recentlyTaskIds) {
+            recentTasks.add(taskRepository.getTaskByIdOrThrow(taskId));
+        }
+        return Collections.unmodifiableList(recentTasks);
     }
 
-    private static final class LinkedUniqList<E, TUniqKey> {
-        private final LinkedList<E> list = new LinkedList<>();
-        private final Map<TUniqKey, Node<E>> map = new HashMap<>();
-        private final Function<E, TUniqKey> uniqKeyFunc;
+    /**
+     * uniqueness --> unique --> uniq
+     */
+    private static class LinkedUniqTaskList {
+        private final LinkedList<TaskId> list = new LinkedList<>();
+        private final Map<TaskId, Node<TaskId>> map = new HashMap<>();
 
-        private LinkedUniqList(Function<E, TUniqKey> uniqKeyFunc) {
-            this.uniqKeyFunc = uniqKeyFunc;
+        private LinkedUniqTaskList() {
+        }
+
+        /**
+         * O(1)
+         */
+        private void addFirst(TaskId taskId) {
+            remove(taskId);
+            map.put(taskId, list.addFirst(taskId));
+        }
+
+        private void removeLast() {
+            map.remove(list.removeLast());
+        }
+
+        /**
+         * O(1)
+         */
+        private void remove(TaskId taskId) {
+            if (map.containsKey(taskId)) {
+                list.remove(map.remove(taskId));
+            }
+        }
+
+        private List<TaskId> asList() {
+            return list.asListWithWhile();
         }
 
         private int size() {
             return list.size();
         }
-
-        private boolean contains(E value) {
-            return map.containsKey(uniqKeyFunc.apply(value));
-        }
-
-        private void remove(E value) {
-            if (!contains(value)) {
-                return;
-            }
-
-            TUniqKey key = uniqKeyFunc.apply(value);
-            list.remove(map.get(key));
-            map.remove(key);
-        }
-
-        private void removeLast() {
-            E removedElement = list.removeLast();
-            if (removedElement != null) {
-                map.remove(uniqKeyFunc.apply(removedElement));
-            }
-        }
-
-        private void addFirst(E value) {
-            TUniqKey key = uniqKeyFunc.apply(value);
-            if (map.containsKey(key)) {
-                list.remove(map.get(key));
-            }
-            map.put(key, list.addFirst(value));
-        }
-
-        private List<E> asUnmodifiableList() {
-            List<E> list = new ArrayList<>(this.list.size());
-            this.list.iterator().forEachRemaining(list::add);
-            return Collections.unmodifiableList(list);
-        }
     }
 
-    private static final class LinkedList<E> implements Iterable<E> {
+    private static class LinkedList<E> implements Iterable<E> {
         private Node<E> head = null;
         private Node<E> tail = null;
         private int size = 0;
@@ -112,70 +94,112 @@ public class InMemoryHistoryManager implements HistoryManager {
 
         private Node<E> addFirst(E value) {
             Node<E> node = new Node<>(value);
-            if (head == null) {
-                head = node;
-                tail = node;
-            } else {
-                node.setNext(head);
+            node.setNext(head);
+            if (head != null) {
                 head.setPrev(node);
-                head = node;
             }
+            head = node;
+
+            if (tail == null) {
+                tail = head;
+            }
+
             ++size;
             return node;
         }
 
-        private int size() {
-            return size;
+        /**
+         * O(1)
+         */
+        private E remove(Node<E> node) {
+            if (node == head) {
+                if (node != tail) {
+                    head.getNext().setPrev(null);
+                } else {
+                    tail = null;
+                }
+                head = node.getNext();
+                node.setNext(null);
+            } else if (node == tail) {
+                // tail.prev can't be null here, as it should be hand = tail situation, that was handled previously
+                tail.getPrev().setNext(null);
+                node.setPrev(null);
+                tail = tail.getPrev();
+            } else {
+                node.getPrev().setNext(node.getNext());
+                node.getNext().setPrev(node.getPrev());
+                node.setPrev(null);
+                node.setNext(null);
+            }
+            --size;
+            return node.getValue();
         }
 
         private E removeLast() {
-            E value = tail == null ? null : tail.getValue();
-            remove(tail);
-            return value;
+            return remove(tail);
         }
 
-        private void remove(Node<E> node) {
-            if (node == head) {
-                head = head.getNext();
-                head.setPrev(null);
-                node.setNext(null); // not to keep link on new head at all
-            } else if (node == tail) {
-                tail = tail.getPrev();
-                tail.setNext(null);
-                node.setPrev(null);
-            } else {
-                node.getPrev()
-                        .setNext(node.getNext());
-                node.getNext()
-                        .setPrev(node.getPrev());
+        private List<E> asListWithWhile() {
+            List<E> list = new ArrayList<>(size());
+            Node<E> current = head;
+            while (current != null) {
+                list.add(current.getValue());
+                current = current.getNext();
             }
-            --size;
+            return Collections.unmodifiableList(list);
+        }
+
+        private List<E> asListWithIterator() {
+            List<E> list = new ArrayList<>(size());
+            Iterator<E> iterator = iterator();
+            while (iterator.hasNext()) {
+                list.add(iterator.next());
+            }
+            return Collections.unmodifiableList(list);
+        }
+
+        private List<E> asListIteratorWithFunctionalProgramming() {
+            List<E> list = new ArrayList<>(size());
+            iterator().forEachRemaining(list::add);
+            return Collections.unmodifiableList(list);
+        }
+
+        private List<E> asListWithIterable() {
+            List<E> list = new ArrayList<>(size());
+            for (E e : this) {
+                list.add(e);
+            }
+            return Collections.unmodifiableList(list);
         }
 
         @Override
         public Iterator<E> iterator() {
             return new Iterator<>() {
-                private Node<E> node = head;
+                private Node<E> current = head;
 
                 @Override
                 public boolean hasNext() {
-                    return node != null;
+                    return current != null;
                 }
 
                 @Override
                 public E next() {
-                    E value = node.getValue();
-                    node = node.getNext();
+                    E value = current.getValue();
+                    current = current.getNext();
                     return value;
                 }
             };
         }
+
+        private int size() {
+            return size;
+        }
     }
 
-    private static final class Node<E> {
+    private static class Node<E> {
         private final E value;
-        private Node<E> prev = null;
-        private Node<E> next = null;
+        private Node<E> prev;
+        private Node<E> next;
 
         private Node(E value) {
             this.value = value;
@@ -193,12 +217,12 @@ public class InMemoryHistoryManager implements HistoryManager {
             return next;
         }
 
-        private void setPrev(Node<E> prev) {
-            this.prev = prev;
-        }
-
         private void setNext(Node<E> next) {
             this.next = next;
+        }
+
+        private void setPrev(Node<E> prev) {
+            this.prev = prev;
         }
     }
 }

@@ -6,7 +6,7 @@ package com.vbutrim.tasks;
 public abstract class Managers {
     private static TaskIdGenerator taskIdGenerator;
     private static TaskRepository taskRepository;
-    private static RecentTasksManager recentTasksManager;
+    private static InMemoryHistoryManager inMemoryHistoryManager;
     private static InMemoryTaskManager inMemoryTaskManager;
 
     public static TaskIdGenerator getTaskIdGenerator() {
@@ -23,11 +23,11 @@ public abstract class Managers {
         return taskRepository;
     }
 
-    public static RecentTasksManager getRecentTasksManager() {
-        if (recentTasksManager == null) {
-            recentTasksManager = new RecentTasksManager();
+    public static HistoryManager getHistoryManager() {
+        if (inMemoryHistoryManager == null) {
+            inMemoryHistoryManager = new InMemoryHistoryManager(getTaskRepository());
         }
-        return recentTasksManager;
+        return inMemoryHistoryManager;
     }
 
     public static TaskManager getDefaultTaskManager() {
@@ -35,7 +35,7 @@ public abstract class Managers {
             return inMemoryTaskManager = new InMemoryTaskManager(
                     getTaskIdGenerator(),
                     getTaskRepository(),
-                    getRecentTasksManager()
+                    getHistoryManager()
             );
         }
         return inMemoryTaskManager;

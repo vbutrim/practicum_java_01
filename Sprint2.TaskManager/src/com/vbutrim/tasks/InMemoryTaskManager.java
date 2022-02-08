@@ -11,16 +11,16 @@ import java.util.stream.Collectors;
 public class InMemoryTaskManager implements TaskManager {
     private final TaskIdGenerator taskIdGenerator;
     private final TaskRepository taskRepository;
-    private final RecentTasksManager recentTasksManager;
+    private final HistoryManager historyManager;
 
     public InMemoryTaskManager(
             TaskIdGenerator taskIdGenerator,
             TaskRepository taskRepository,
-            RecentTasksManager recentTasksManager)
+            HistoryManager historyManager)
     {
         this.taskIdGenerator = taskIdGenerator;
         this.taskRepository = taskRepository;
-        this.recentTasksManager = recentTasksManager;
+        this.historyManager = historyManager;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         taskRepository.saveNewTask(epicTask);
 
-        recentTasksManager.push(epicTask.getId());
+        historyManager.add(epicTask.getId());
 
         return epicTask;
     }
@@ -48,7 +48,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         taskRepository.saveNewTask(singleTask);
 
-        recentTasksManager.push(singleTask.getId());
+        historyManager.add(singleTask.getId());
 
         return singleTask;
     }
@@ -77,7 +77,7 @@ public class InMemoryTaskManager implements TaskManager {
         taskRepository.updateExistingTask(epicTask);
         taskRepository.saveNewTask(subTask);
 
-        recentTasksManager.push(subTask.getId());
+        historyManager.add(subTask.getId());
 
         return subTask;
     }
@@ -88,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
         taskToUpdate.setName(newName);
         taskRepository.updateExistingTask(taskToUpdate);
 
-        recentTasksManager.push(taskId);
+        historyManager.add(taskToUpdate.getId());
     }
 
     @Override
@@ -97,7 +97,7 @@ public class InMemoryTaskManager implements TaskManager {
         taskToUpdate.setName(newDescription);
         taskRepository.updateExistingTask(taskToUpdate);
 
-        recentTasksManager.push(taskId);
+        historyManager.add(taskId);
     }
 
     @Override
@@ -106,25 +106,11 @@ public class InMemoryTaskManager implements TaskManager {
         taskToUpdate.setStatus(taskStatusToSet);
         taskRepository.updateExistingTask(taskToUpdate);
 
-        recentTasksManager.push(taskId);
+        historyManager.add(taskId);
     }
 
     @Override
     public List<Task> getRecentTasks() {
-        ArrayList<Task> recentTasks = new ArrayList<>();
-
-        for (TaskId recentTaskId : recentTasksManager.getRecentTaskIds()) {
-            recentTasks.add(taskRepository.getTaskByIdOrThrow(recentTaskId));
-        }
-
-        return Collections.unmodifiableList(recentTasks);
-    }
-
-    public List<Task> getRecentTasksWithStreamApi() {
-        return recentTasksManager
-                .getRecentTaskIds()
-                .stream()
-                .map(taskRepository::getTaskByIdOrThrow)
-                .collect(Collectors.toUnmodifiableList());
+        return historyManager.getHistory();
     }
 }

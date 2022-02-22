@@ -7,7 +7,7 @@ import java.util.Map;
  * @author butrim
  */
 public class TaskRepository {
-    private final Map<TaskId, TaskRepositoryDto> tasks;
+    protected final Map<TaskId, TaskRepositoryDto> tasks;
 
     public TaskRepository() {
         this.tasks = new HashMap<>();

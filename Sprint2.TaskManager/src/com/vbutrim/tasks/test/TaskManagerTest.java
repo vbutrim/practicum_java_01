@@ -13,7 +13,7 @@ import com.vbutrim.tasks.TaskStatus;
  */
 public class TaskManagerTest {
     public static void main(String[] args) {
-        TaskRepository taskRepository = Managers.getTaskRepository();
+        TaskRepository taskRepository = Managers.getDefaultTaskRepository();
         TaskManager taskManager = Managers.getDefaultTaskManager();
 
         System.out.println("InMemoryTaskManager is initialized");

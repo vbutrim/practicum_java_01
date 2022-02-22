@@ -30,15 +30,15 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
-    public void remove(TaskId taskId) {
-        historyList.remove(taskId);
+    public List<TaskId> getRecentTaskIds() {
+        return historyList.asList();
     }
 
     @Override
     public List<Task> getHistory() {
-        List<TaskId> recentlyTaskIds = historyList.asList();
-        List<Task> recentTasks = new ArrayList<>(recentlyTaskIds.size());
-        for (TaskId taskId : recentlyTaskIds) {
+        List<TaskId> recentTaskIds = getRecentTaskIds();
+        List<Task> recentTasks = new ArrayList<>(recentTaskIds.size());
+        for (TaskId taskId : recentTaskIds) {
             recentTasks.add(taskRepository.getTaskByIdOrThrow(taskId));
         }
         return Collections.unmodifiableList(recentTasks);

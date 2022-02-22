@@ -1,5 +1,7 @@
 package com.vbutrim.tasks;
 
+import java.nio.file.Path;
+
 /**
  * @author butrim
  */
@@ -9,35 +11,82 @@ public abstract class Managers {
     private static InMemoryHistoryManager inMemoryHistoryManager;
     private static InMemoryTaskManager inMemoryTaskManager;
 
-    public static TaskIdGenerator getTaskIdGenerator() {
+    private static final Path existingTasksDb = Path.of("resources/existing_tasks_db");
+    private static final Path newTasksDb = Path.of("resources/new_tasks_db");
+    private static FileBackedTaskRepository fileBackedTaskRepository;
+    private static FileBackedHistoryManager fileBackedHistoryManager;
+    private static FileBackedTaskManager fileBackedTaskManager;
+
+    private static TaskIdGenerator getTaskIdGenerator() {
         if (taskIdGenerator == null) {
             taskIdGenerator = new TaskIdGenerator();
         }
         return taskIdGenerator;
     }
 
-    public static TaskRepository getTaskRepository() {
+    private static TaskRepository getInMemoryTaskRepository() {
         if (taskRepository == null) {
             taskRepository = new TaskRepository();
         }
         return taskRepository;
     }
 
-    public static HistoryManager getHistoryManager() {
+    private static HistoryManager getInMemoryHistoryManager() {
         if (inMemoryHistoryManager == null) {
-            inMemoryHistoryManager = new InMemoryHistoryManager(getTaskRepository());
+            inMemoryHistoryManager = new InMemoryHistoryManager(getInMemoryTaskRepository());
         }
         return inMemoryHistoryManager;
     }
 
-    public static TaskManager getDefaultTaskManager() {
+    private static InMemoryTaskManager getInMemoryTaskManager() {
         if (inMemoryTaskManager == null) {
             return inMemoryTaskManager = new InMemoryTaskManager(
                     getTaskIdGenerator(),
-                    getTaskRepository(),
-                    getHistoryManager()
+                    getInMemoryTaskRepository(),
+                    getInMemoryHistoryManager()
             );
         }
         return inMemoryTaskManager;
+    }
+
+    private static FileBackedTaskRepository getFileBackedTaskRepository() {
+        if (fileBackedTaskRepository == null) {
+            return fileBackedTaskRepository = new FileBackedTaskRepository(newTasksDb);
+        }
+        return fileBackedTaskRepository;
+    }
+
+    private static FileBackedHistoryManager getFileBackedHistoryManager() {
+        if (fileBackedHistoryManager == null) {
+            return fileBackedHistoryManager = new FileBackedHistoryManager(
+                    fileBackedTaskRepository
+            );
+        }
+
+        return fileBackedHistoryManager;
+    }
+
+    private static FileBackedTaskManager getFileBackedTaskManager() {
+        if (fileBackedTaskManager == null) {
+            return fileBackedTaskManager = new FileBackedTaskManager(
+                    getTaskIdGenerator(),
+                    getFileBackedTaskRepository(),
+                    getFileBackedHistoryManager()
+            );
+        }
+
+        return fileBackedTaskManager;
+    }
+
+    public static TaskRepository getDefaultTaskRepository() {
+        return getFileBackedTaskRepository();
+    }
+
+    public static HistoryManager getDefaultHistoryManager() {
+        return getFileBackedHistoryManager();
+    }
+
+    public static TaskManager getDefaultTaskManager() {
+        return getFileBackedTaskManager();
     }
 }

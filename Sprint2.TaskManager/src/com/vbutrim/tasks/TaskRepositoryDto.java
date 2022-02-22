@@ -1,21 +1,43 @@
 package com.vbutrim.tasks;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author butrim
  */
-public class TaskRepositoryDto {
+public class TaskRepositoryDto implements Serializable {
+    private static final String FIELDS_DELIMITER = ";";
+    private static final String NULL_STRING = "null";
+
     private final int id;
     private final TaskType type;
     private final String name;
     private final String description;
     private final TaskStatus status;
-    private final List<Integer> subTaskIds;
-    private final Integer epicTaskId;
+    private final List<Integer> subTaskIds; // can be null
+    private final Integer epicTaskId; // can be null
 
     private TaskRepositoryDto(
+            int id,
+            TaskType type,
+            String name,
+            String description,
+            TaskStatus status,
+            List<Integer> subTaskIds,
+            Integer epicTaskId)
+    {
+        this.id = id;
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.subTaskIds = subTaskIds;
+        this.epicTaskId = epicTaskId;
+    }
+
+    private static TaskRepositoryDto cons(
             TaskId id,
             TaskType type,
             String name,
@@ -24,32 +46,38 @@ public class TaskRepositoryDto {
             List<TaskId> subTaskIds,
             TaskId epicTaskId)
     {
-        this.id = id.asInteger();
-        this.type = type;
-        this.name = name;
-        this.description = description;
-        this.status = status;
-
+        List<Integer> subTaskIdsAsInts;
         if (subTaskIds == null) {
-            this.subTaskIds = null;
+            subTaskIdsAsInts = null;
         } else {
-            this.subTaskIds = new ArrayList<>(subTaskIds.size());
+            subTaskIdsAsInts = new ArrayList<>(subTaskIds.size());
             for (TaskId taskId : subTaskIds) {
-                this.subTaskIds.add(taskId.asInteger());
+                subTaskIdsAsInts.add(taskId.asInteger());
             }
         }
 
+        Integer epicTaskIdsAsInt;
         if (epicTaskId == null) {
-            this.epicTaskId = null;
+            epicTaskIdsAsInt = null;
         } else {
-            this.epicTaskId = epicTaskId.asInteger();
+            epicTaskIdsAsInt = epicTaskId.asInteger();
         }
+
+        return new TaskRepositoryDto(
+                id.asInteger(),
+                type,
+                name,
+                description,
+                status,
+                subTaskIdsAsInts,
+                epicTaskIdsAsInt
+        );
     }
 
     public static TaskRepositoryDto from(Task task) {
         switch (task.getType()) {
             case EPIC:
-                return new TaskRepositoryDto(
+                return TaskRepositoryDto.cons(
                         task.getId(),
                         task.getType(),
                         task.getName(),
@@ -59,7 +87,7 @@ public class TaskRepositoryDto {
                         null
                 );
             case SUB:
-                return new TaskRepositoryDto(
+                return TaskRepositoryDto.cons(
                         task.getId(),
                         task.getType(),
                         task.getName(),
@@ -69,7 +97,7 @@ public class TaskRepositoryDto {
                         ((SubTask) task).getEpicTaskId()
                 );
             case SINGLE:
-                return new TaskRepositoryDto(
+                return TaskRepositoryDto.cons(
                         task.getId(),
                         task.getType(),
                         task.getName(),
@@ -120,5 +148,31 @@ public class TaskRepositoryDto {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    public static TaskRepositoryDto from(String task) {
+        String[] fields = task.split(FIELDS_DELIMITER);
+        return new TaskRepositoryDto(
+                Integer.parseInt(fields[0]),
+                TaskType.byValueOrThrow(fields[1]),
+                NULL_STRING.equals(fields[2]) ? "" : fields[2],
+                NULL_STRING.equals(fields[3]) ? "" : fields[3],
+                TaskStatus.byValueOrThrow(fields[4]),
+                StringUtils.parseIntegerList(fields[5]),
+                NULL_STRING.equals(fields[6]) ? null : Integer.parseInt(fields[6])
+        );
+    }
+
+    public String asString() {
+        return String.format(
+                "%s;%s;%s;%s;%s;%s;%s",
+                id,
+                type.value(),
+                name.isEmpty() ? NULL_STRING : name,
+                description.isEmpty() ? NULL_STRING : description,
+                status.value(),
+                StringUtils.toString(subTaskIds),
+                epicTaskId != null ? Integer.toString(epicTaskId) : NULL_STRING
+        );
     }
 }

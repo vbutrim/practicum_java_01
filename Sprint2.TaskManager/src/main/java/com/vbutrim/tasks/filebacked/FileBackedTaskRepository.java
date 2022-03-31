@@ -1,4 +1,6 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.filebacked;
+
+import com.vbutrim.tasks.*;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -58,8 +60,8 @@ public class FileBackedTaskRepository extends TaskRepository {
 
     public static void main(String[] args) throws IOException {
         loadFromFileF(
-                Path.of("resources/existing_tasks_db"),
-                Path.of("resources/from_existing_tasks_db_f")
+                Path.of("target/classes/existing_tasks_db"),
+                Path.of("target/classes/from_existing_tasks_db_f")
         );
     }
 

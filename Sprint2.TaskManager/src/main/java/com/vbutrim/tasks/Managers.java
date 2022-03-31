@@ -1,5 +1,9 @@
 package com.vbutrim.tasks;
 
+import com.vbutrim.tasks.filebacked.FileBackedHistoryManager;
+import com.vbutrim.tasks.filebacked.FileBackedTaskManager;
+import com.vbutrim.tasks.filebacked.FileBackedTaskRepository;
+
 import java.nio.file.Path;
 
 /**

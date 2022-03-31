@@ -1,4 +1,8 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers.inmemory;
+
+import com.vbutrim.tasks.Task;
+import com.vbutrim.tasks.TaskId;
+import com.vbutrim.tasks.managers.HistoryManager;
 
 import java.util.ArrayList;
 import java.util.Collections;

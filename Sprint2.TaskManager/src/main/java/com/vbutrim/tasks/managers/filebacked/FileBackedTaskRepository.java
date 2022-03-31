@@ -1,15 +1,14 @@
-package com.vbutrim.tasks.filebacked;
+package com.vbutrim.tasks.managers.filebacked;
 
 import com.vbutrim.tasks.*;
+import com.vbutrim.tasks.managers.TaskRepositoryDto;
+import com.vbutrim.tasks.managers.inmemory.TaskRepository;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 /**

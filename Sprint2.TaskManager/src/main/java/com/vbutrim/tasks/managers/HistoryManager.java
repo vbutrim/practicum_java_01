@@ -1,4 +1,7 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers;
+
+import com.vbutrim.tasks.Task;
+import com.vbutrim.tasks.TaskId;
 
 import java.util.List;
 

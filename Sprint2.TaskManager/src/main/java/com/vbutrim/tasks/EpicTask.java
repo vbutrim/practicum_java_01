@@ -9,7 +9,7 @@ import java.util.List;
 public class EpicTask extends Task {
     private final List<TaskId> subTaskIds;
 
-    EpicTask(TaskId id, String name, String description, List<TaskId> subTaskIds, TaskStatus status) {
+    public EpicTask(TaskId id, String name, String description, List<TaskId> subTaskIds, TaskStatus status) {
         super(id, name, description, status);
         this.subTaskIds = new ArrayList<>(subTaskIds.size());
         this.subTaskIds.addAll(subTaskIds);

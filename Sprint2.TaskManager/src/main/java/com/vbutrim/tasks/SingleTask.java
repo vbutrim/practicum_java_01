@@ -4,7 +4,8 @@ package com.vbutrim.tasks;
  * @author butrim
  */
 public class SingleTask extends Task {
-    SingleTask(TaskId id, String name, String description, TaskStatus status) {
+
+    public SingleTask(TaskId id, String name, String description, TaskStatus status) {
         super(id, name, description, status);
     }
 

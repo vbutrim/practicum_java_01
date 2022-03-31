@@ -1,8 +1,13 @@
 package com.vbutrim.tasks;
 
-import com.vbutrim.tasks.filebacked.FileBackedHistoryManager;
-import com.vbutrim.tasks.filebacked.FileBackedTaskManager;
-import com.vbutrim.tasks.filebacked.FileBackedTaskRepository;
+import com.vbutrim.tasks.managers.*;
+import com.vbutrim.tasks.managers.filebacked.FileBackedHistoryManager;
+import com.vbutrim.tasks.managers.filebacked.FileBackedTaskManager;
+import com.vbutrim.tasks.managers.filebacked.FileBackedTaskRepository;
+import com.vbutrim.tasks.http.TasksServer;
+import com.vbutrim.tasks.managers.inmemory.InMemoryHistoryManager;
+import com.vbutrim.tasks.managers.inmemory.InMemoryTaskManager;
+import com.vbutrim.tasks.managers.inmemory.TaskRepository;
 
 import java.nio.file.Path;
 
@@ -15,11 +20,13 @@ public abstract class Managers {
     private static InMemoryHistoryManager inMemoryHistoryManager;
     private static InMemoryTaskManager inMemoryTaskManager;
 
-    private static final Path existingTasksDb = Path.of("resources/existing_tasks_db");
-    private static final Path newTasksDb = Path.of("resources/new_tasks_db");
+    private static final Path existingTasksDb = Path.of("target/classes/existing_tasks_db");
+    private static final Path newTasksDb = Path.of("target/classes/new_tasks_db");
     private static FileBackedTaskRepository fileBackedTaskRepository;
     private static FileBackedHistoryManager fileBackedHistoryManager;
     private static FileBackedTaskManager fileBackedTaskManager;
+
+    private static TasksServer tasksServer;
 
     private static TaskIdGenerator getTaskIdGenerator() {
         if (taskIdGenerator == null) {
@@ -83,14 +90,25 @@ public abstract class Managers {
     }
 
     public static TaskRepository getDefaultTaskRepository() {
-        return getFileBackedTaskRepository();
+        return getInMemoryTaskRepository();
     }
 
     public static HistoryManager getDefaultHistoryManager() {
-        return getFileBackedHistoryManager();
+        return getInMemoryHistoryManager();
     }
 
     public static TaskManager getDefaultTaskManager() {
-        return getFileBackedTaskManager();
+        return getInMemoryTaskManager();
+    }
+
+    public static TasksServer getTasksServer() {
+        if (tasksServer == null) {
+            try {
+                return tasksServer = new TasksServer(getDefaultTaskManager());
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return tasksServer;
     }
 }

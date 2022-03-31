@@ -1,7 +1,7 @@
-package com.vbutrim.tasks.filebacked;
+package com.vbutrim.tasks.managers.filebacked;
 
-import com.vbutrim.tasks.HistoryManager;
-import com.vbutrim.tasks.InMemoryTaskManager;
+import com.vbutrim.tasks.managers.HistoryManager;
+import com.vbutrim.tasks.managers.inmemory.InMemoryTaskManager;
 import com.vbutrim.tasks.TaskIdGenerator;
 
 /**

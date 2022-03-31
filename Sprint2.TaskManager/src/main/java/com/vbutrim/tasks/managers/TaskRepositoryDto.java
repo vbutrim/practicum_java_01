@@ -1,4 +1,6 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers;
+
+import com.vbutrim.tasks.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;

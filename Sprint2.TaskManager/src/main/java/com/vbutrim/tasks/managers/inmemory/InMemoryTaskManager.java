@@ -1,6 +1,12 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers.inmemory;
+
+import com.vbutrim.tasks.*;
+import com.vbutrim.tasks.managers.HistoryManager;
+import com.vbutrim.tasks.managers.TaskManager;
+import com.vbutrim.tasks.managers.inmemory.TaskRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author butrim
@@ -109,5 +115,15 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Task> getRecentTasks() {
         return historyManager.getHistory();
+    }
+
+    @Override
+    public List<Task> getAllTasks() {
+        return taskRepository.getAllTasks();
+    }
+
+    @Override
+    public Optional<Task> getTaskO(TaskId taskId) {
+        return taskRepository.getTaskByIdO(taskId);
     }
 }

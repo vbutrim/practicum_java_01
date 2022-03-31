@@ -6,7 +6,7 @@ package com.vbutrim.tasks;
 public class SubTask extends Task {
     private final TaskId epicTaskId;
 
-    SubTask(TaskId id, TaskId epicTaskId, String name, String description, TaskStatus status) {
+    public SubTask(TaskId id, TaskId epicTaskId, String name, String description, TaskStatus status) {
         super(id, name, description, status);
         this.epicTaskId = epicTaskId;
     }

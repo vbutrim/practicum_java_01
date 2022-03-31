@@ -4,8 +4,8 @@ import com.vbutrim.tasks.EpicTask;
 import com.vbutrim.tasks.Managers;
 import com.vbutrim.tasks.SubTask;
 import com.vbutrim.tasks.Task;
-import com.vbutrim.tasks.TaskManager;
-import com.vbutrim.tasks.TaskRepository;
+import com.vbutrim.tasks.managers.TaskManager;
+import com.vbutrim.tasks.managers.inmemory.TaskRepository;
 import com.vbutrim.tasks.TaskStatus;
 
 /**

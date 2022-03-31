@@ -1,6 +1,9 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers;
+
+import com.vbutrim.tasks.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author butrim
@@ -19,4 +22,8 @@ public interface TaskManager {
     void updateTaskStatus(TaskId taskId, TaskStatus taskStatusToSet);
 
     List<Task> getRecentTasks();
+
+    List<Task> getAllTasks();
+
+    Optional<Task> getTaskO(TaskId taskId);
 }

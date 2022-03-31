@@ -1,7 +1,13 @@
-package com.vbutrim.tasks;
+package com.vbutrim.tasks.managers.inmemory;
+
+import com.vbutrim.tasks.*;
+import com.vbutrim.tasks.managers.TaskRepositoryDto;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author butrim
@@ -17,12 +23,17 @@ public class TaskRepository {
         return tasks.size();
     }
 
-    public Task getTaskByIdOrThrow(TaskId taskId) throws TaskNotFoundException {
+    public Optional<Task> getTaskByIdO(TaskId taskId) {
         if (!tasks.containsKey(taskId)) {
-            throw new TaskNotFoundException(taskId);
+            return Optional.empty();
         }
 
-        return tasks.get(taskId).asTask();
+        return Optional.of(tasks.get(taskId).asTask());
+    }
+
+    public Task getTaskByIdOrThrow(TaskId taskId) throws TaskNotFoundException {
+        return getTaskByIdO(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
     }
 
     public void saveNewTask(Task task) throws TaskWithIdAlreadyExistsException {
@@ -47,5 +58,13 @@ public class TaskRepository {
             throw new TaskNotFoundException(taskId);
         }
         tasks.remove(taskId);
+    }
+
+    public List<Task> getAllTasks() {
+        return tasks
+                .values()
+                .stream()
+                .map(TaskRepositoryDto::asTask)
+                .toList();
     }
 }

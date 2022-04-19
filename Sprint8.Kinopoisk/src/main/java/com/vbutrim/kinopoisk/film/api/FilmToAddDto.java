@@ -2,6 +2,7 @@ package com.vbutrim.kinopoisk.film.api;
 
 import com.vbutrim.kinopoisk.film.Film;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
@@ -10,8 +11,9 @@ import java.time.Duration;
 import java.time.LocalDate;
 
 @AllArgsConstructor
+@Getter
 @ToString
-public class FilmToAdd {
+public class FilmToAddDto {
     @NotNull
     private final String name;
     @Size(min = 1, max = 5)

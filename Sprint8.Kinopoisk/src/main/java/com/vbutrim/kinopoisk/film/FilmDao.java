@@ -1,6 +1,6 @@
 package com.vbutrim.kinopoisk.film;
 
-import com.vbutrim.kinopoisk.film.api.FilmToAdd;
+import com.vbutrim.kinopoisk.film.api.FilmToAddDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,10 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * DAO -- data access object
+ */
 public class FilmDao {
     private long idSeq = 0L;
 
-    private final Map<Long, Dto> films = new HashMap<>();
+    private final Map<Long, RepositoryDto> films = new HashMap<>();
 
     public FilmDao() {
     }
@@ -23,27 +26,27 @@ public class FilmDao {
         return films
                 .values()
                 .stream()
-                .map(Dto::asFilm)
+                .map(RepositoryDto::asFilm)
                 .collect(Collectors.toList());
     }
 
-    public Film addNewFilm(FilmToAdd filmToAdd) {
+    public Film addNewFilm(FilmToAddDto filmToAdd) {
         Film added = filmToAdd.added(idSeq++);
-        films.put(added.getId(), Dto.from(added));
+        films.put(added.getId(), RepositoryDto.from(added));
         return added;
     }
 
     @AllArgsConstructor
     @Getter
-    private static final class Dto {
+    private static final class RepositoryDto {
         private final long id;
         private final String name;
         private final String description;
         private final LocalDate releaseDate;
         private final Duration duration;
 
-        private static Dto from(Film film) {
-            return new Dto(
+        private static RepositoryDto from(Film film) {
+            return new RepositoryDto(
                     film.getId(),
                     film.getName(),
                     film.getDescription(),

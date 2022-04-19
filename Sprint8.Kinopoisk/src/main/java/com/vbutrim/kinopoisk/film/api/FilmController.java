@@ -1,5 +1,6 @@
 package com.vbutrim.kinopoisk.film.api;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vbutrim.kinopoisk.film.Film;
 import com.vbutrim.kinopoisk.film.FilmContextConfiguration;
 import com.vbutrim.kinopoisk.film.FilmDao;
@@ -8,8 +9,10 @@ import lombok.Data;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.LinkedList;
@@ -34,7 +37,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public FilmResponseDto addNewFilm(@RequestBody FilmToAdd filmToAdd) {
+    public FilmResponseDto addNewFilm(@Validated @RequestBody FilmToAdd filmToAdd) {
         logger.debug("Adding new film.\nBody:\n{}", filmToAdd);
         return FilmResponseDto.cons(filmDao.addNewFilm(filmToAdd));
     }
@@ -46,6 +49,7 @@ public class FilmController {
         private final String name;
         private final String description;
         private final LocalDate releaseDate;
+        @JsonFormat(shape = JsonFormat.Shape.NUMBER)
         private final Duration duration;
 
         private static FilmResponseDto cons(Film film) {

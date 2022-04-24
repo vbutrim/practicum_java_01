@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Application
         run: nohup mvn spring-boot:run &
-      - run: /tmp/wait-for-it.sh -t 120 localhost:8080 -- echo "application is up"
+      - run: /tmp/wait-for-it.sh -t 360 localhost:8080 -- echo "application is up"
 
       - name: Test API POSTMAN
         run: |

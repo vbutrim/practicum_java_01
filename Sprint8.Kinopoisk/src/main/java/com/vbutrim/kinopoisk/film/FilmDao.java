@@ -3,37 +3,69 @@ package com.vbutrim.kinopoisk.film;
 import com.vbutrim.kinopoisk.film.api.FilmToAddDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.sql.PreparedStatement;
 import java.time.Duration;
-import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
  * DAO -- data access object
  */
 public class FilmDao {
-    private long idSeq = 0L;
+    private final JdbcTemplate jdbcTemplate;
 
-    private final Map<Long, RepositoryDto> films = new HashMap<>();
-
-    public FilmDao() {
+    public FilmDao(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<Film> getAllFilms() {
-        return films
-                .values()
-                .stream()
+        return jdbcTemplate
+                .queryForStream("""
+                                select *
+                                from films
+                                order by id;
+                                """,
+                        (rs, rowNum) ->
+                                new RepositoryDto(
+                                        rs.getLong("id"),
+                                        rs.getString("name"),
+                                        rs.getString("description"),
+                                        rs.getDate("release_date"),
+                                        rs.getLong("duration_sec")
+                                )
+                )
                 .map(RepositoryDto::asFilm)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Film addNewFilm(FilmToAddDto filmToAdd) {
-        Film added = filmToAdd.added(idSeq++);
-        films.put(added.getId(), RepositoryDto.from(added));
-        return added;
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sqlQuery = """
+                insert into films (name, description, release_date, duration_sec)
+                values (?, ?, ?, ?)
+                """;
+        int updated = jdbcTemplate
+                .update(
+                        connection -> {
+                            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"id"});
+                            stmt.setString(1, filmToAdd.getName());
+                            stmt.setString(2, filmToAdd.getDescription());
+                            stmt.setDate(3, java.sql.Date.valueOf(filmToAdd.getReleaseDate()));
+                            stmt.setLong(4, filmToAdd.getDuration().getSeconds());
+                            return stmt;
+                        },
+                        keyHolder
+                );
+        if (updated == 1) {
+            return filmToAdd.added(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
     @AllArgsConstructor
@@ -42,27 +74,11 @@ public class FilmDao {
         private final long id;
         private final String name;
         private final String description;
-        private final LocalDate releaseDate;
-        private final Duration duration;
+        private final java.sql.Date releaseDate;
+        private final long durationSec;
 
-        private static RepositoryDto from(Film film) {
-            return new RepositoryDto(
-                    film.getId(),
-                    film.getName(),
-                    film.getDescription(),
-                    film.getReleaseDate(),
-                    film.getDuration()
-            );
-        }
-
-        public Film asFilm() {
-            return new Film(
-                    id,
-                    name,
-                    description,
-                    releaseDate,
-                    duration
-            );
+        private Film asFilm() {
+            return new Film(id, name, description, releaseDate.toLocalDate(), Duration.ofSeconds(durationSec));
         }
     }
 }

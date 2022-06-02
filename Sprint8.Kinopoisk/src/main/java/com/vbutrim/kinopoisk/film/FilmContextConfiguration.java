@@ -1,12 +1,13 @@
 package com.vbutrim.kinopoisk.film;
 
-public abstract class FilmContextConfiguration {
-    private static FilmDao filmDao;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-    public static FilmDao getFilmDao() {
-        if (filmDao == null) {
-            filmDao = new FilmDao();
-        }
-        return filmDao;
+@Configuration
+public class FilmContextConfiguration {
+    @Bean
+    public FilmDao filmDao(JdbcTemplate jdbcTemplate) {
+        return new FilmDao(jdbcTemplate);
     }
 }

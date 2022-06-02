@@ -40,17 +40,10 @@ public class FilmController {
 
     private final FilmDao filmDao;
 
-    public FilmController() {
-        this.filmDao = FilmContextConfiguration.getFilmDao();
+    public FilmController(FilmDao filmDao) {
+        this.filmDao = filmDao;
     }
 
-    /**
-     * trace
-     * debug
-     * info
-     * warning
-     * error
-     */
     @GetMapping
     public FilmsResponseDto getAllFilms() {
         logger.debug("Getting all films");
@@ -94,27 +87,6 @@ public class FilmController {
                     film.getReleaseDate(),
                     film.getDuration()
             );
-        }
-    }
-
-    @GetMapping(path = "/exception")
-    public void exception() {
-        throw  new IllegalArgumentException("this is exception");
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleNoSuchElementFoundException(MethodArgumentNotValidException exception) {
-        return new ErrorResponse(exception.getMessage());
-    }
-
-    @Getter
-    public static final class ErrorResponse {
-        private final String greetingMessage = "Hey, everyone!";
-        private final String exceptionMessage;
-
-        public ErrorResponse(String exceptionMessage) {
-            this.exceptionMessage = exceptionMessage;
         }
     }
 

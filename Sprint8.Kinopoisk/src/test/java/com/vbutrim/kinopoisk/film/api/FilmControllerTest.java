@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class FilmControllerTest {
 
-    private final FilmController filmController = new FilmController();
+    private final FilmController filmController = new FilmController(null);
 
     @Test
     void shouldValidateFilmReleaseDate() {

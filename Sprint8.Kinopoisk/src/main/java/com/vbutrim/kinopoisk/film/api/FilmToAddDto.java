@@ -14,12 +14,16 @@ import java.time.LocalDate;
 @Getter
 @ToString
 public class FilmToAddDto {
+    @Size(min = 1, max = 255)
     @NotNull
     private final String name;
-    @Size(min = 1, max = 5)
+    @NotNull
+    @Size(min = 1, max = 255)
     private final String description;
     //@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @NotNull
     private final LocalDate releaseDate;
+    @NotNull
     private final Duration duration;
 
     public Film added(long id) {
